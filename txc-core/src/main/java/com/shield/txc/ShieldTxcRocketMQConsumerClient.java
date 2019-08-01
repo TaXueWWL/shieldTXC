@@ -8,6 +8,8 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author snowalker
@@ -18,14 +20,15 @@ import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
  */
 public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShieldTxcRocketMQConsumerClient.class);
 
-
+    /**事务提交消费者*/
     private DefaultMQPushConsumer commmitConsumer;
-
+    /**事务回滚消费者*/
     private DefaultMQPushConsumer rollbackConsumer;
-
+    /**事务提交业务监听器*/
     private MessageListenerConcurrently txCommmtListener;
-
+    /**事务回滚业务监听器*/
     private MessageListenerConcurrently txRollbackListener;
 
     private String nameSrvAddr;
@@ -42,8 +45,10 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
         this.txRollbackListener = txRollbackListener;
         // 初始化事务提交消费者
         initCommitConsumer(this.topic, this.nameSrvAddr);
+        LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient.CommmitConsumer] instance init success.");
         // 初始化事务回滚消费者
         initRollbackConsumer(this.topic, this.nameSrvAddr);
+        LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient.RollbackListener] instance init success.");
     }
 
     /**

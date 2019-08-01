@@ -1,9 +1,14 @@
 package com.shield.txc;
 
+import com.google.common.base.Preconditions;
+import com.shield.txc.constant.CommonProperty;
+import com.shield.txc.listener.ShieldTxcCommitListener;
+import com.shield.txc.listener.ShieldTxcRollbackListener;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -16,16 +21,41 @@ import java.util.List;
  */
 public class ShieldTxcConsumerListenerAdapter {
 
-    private MessageListenerConcurrently txCommmtListener;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShieldTxcConsumerListenerAdapter.class);
 
-    private MessageListenerConcurrently txRollbackListener;
+    private ShieldTxcCommitListener txCommmtListener;
+
+    private ShieldTxcRollbackListener txRollbackListener;
+
+    private String nameSrvAddr;
+
+    private String topic = CommonProperty.DEFAULT_SHIELD_TXC_TOPIC;
+
+    private ShieldTxcRocketMQConsumerClient shieldTxcRocketMQConsumerClient;
+
 
     public ShieldTxcConsumerListenerAdapter() {}
 
-    public ShieldTxcConsumerListenerAdapter(MessageListenerConcurrently txCommmtListener,
-                                            MessageListenerConcurrently txRollbackListener) {
+    public ShieldTxcConsumerListenerAdapter(String nameSrvAddr,
+                                            String topic,
+                                            ShieldTxcCommitListener txCommmtListener,
+                                            ShieldTxcRollbackListener txRollbackListener) {
+        this.nameSrvAddr = nameSrvAddr;
+        this.topic = topic;
         this.txCommmtListener = txCommmtListener;
         this.txRollbackListener = txRollbackListener;
+        init();
+    }
+
+    public ShieldTxcConsumerListenerAdapter init() {
+        // 初始化shieldTxcRocketMQConsumerClient
+        Preconditions.checkNotNull(this.nameSrvAddr, "please insert RocketMQ NameServer address");
+        Preconditions.checkNotNull(this.txCommmtListener, "please initialize a ShieldTxcCommitListener instance");
+        Preconditions.checkNotNull(this.txRollbackListener, "please initialize a ShieldTxcRollbackListener instance");
+        shieldTxcRocketMQConsumerClient =
+                new ShieldTxcRocketMQConsumerClient(this.topic, this.nameSrvAddr, this.txCommmtListener, this.txRollbackListener);
+        LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient] instance init success.");
+        return this;
     }
 
     /**
@@ -54,20 +84,38 @@ public class ShieldTxcConsumerListenerAdapter {
         return consumeConcurrentlyStatus;
     }
 
-    public MessageListenerConcurrently getTxCommmtListener() {
+    public String getNameSrvAddr() {
+        return nameSrvAddr;
+    }
+
+    public ShieldTxcConsumerListenerAdapter setNameSrvAddr(String nameSrvAddr) {
+        this.nameSrvAddr = nameSrvAddr;
+        return this;
+    }
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public ShieldTxcConsumerListenerAdapter setTopic(String topic) {
+        this.topic = topic;
+        return this;
+    }
+
+    public ShieldTxcCommitListener getTxCommmtListener() {
         return txCommmtListener;
     }
 
-    public ShieldTxcConsumerListenerAdapter setTxCommmtListener(MessageListenerConcurrently txCommmtListener) {
+    public ShieldTxcConsumerListenerAdapter setTxCommmtListener(ShieldTxcCommitListener txCommmtListener) {
         this.txCommmtListener = txCommmtListener;
         return this;
     }
 
-    public MessageListenerConcurrently getTxRollbackListener() {
+    public ShieldTxcRollbackListener getTxRollbackListener() {
         return txRollbackListener;
     }
 
-    public ShieldTxcConsumerListenerAdapter setTxRollbackListener(MessageListenerConcurrently txRollbackListener) {
+    public ShieldTxcConsumerListenerAdapter setTxRollbackListener(ShieldTxcRollbackListener txRollbackListener) {
         this.txRollbackListener = txRollbackListener;
         return this;
     }

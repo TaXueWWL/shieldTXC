@@ -131,7 +131,9 @@ public class SendTxcMessageScheduler extends AbstractMessageScheduler implements
             Message rollbackMessage = new Message(topic, messgeBody.getBytes());
             bizResult = shieldTxcRocketMQProducerClient.sendRollbackMsg(rollbackMessage, eventId);
         }
-
+        // TODO
+        System.out.println(messgeBody);
+        System.out.println(JSON.toJSONString(bizResult));
         // 判断发送结果,成功则更新为已发送
         if (bizResult.getBizCode() != BizCode.SEND_MESSAGE_SUCC) {
             return;
