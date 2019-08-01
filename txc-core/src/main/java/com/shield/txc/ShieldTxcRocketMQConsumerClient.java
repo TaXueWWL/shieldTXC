@@ -2,9 +2,11 @@ package com.shield.txc;
 
 import com.shield.txc.constant.CommonProperty;
 import com.shield.txc.constant.MessageQueueType;
+import com.shield.txc.exception.BizException;
+import com.shield.txc.listener.ShieldTxcCommitListener;
+import com.shield.txc.listener.ShieldTxcRollbackListener;
 import com.shield.txc.util.MessagePropertyBuilder;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
@@ -23,13 +25,9 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShieldTxcRocketMQConsumerClient.class);
 
     /**事务提交消费者*/
-    private DefaultMQPushConsumer commmitConsumer;
+    private DefaultMQPushConsumer commitConsumer;
     /**事务回滚消费者*/
     private DefaultMQPushConsumer rollbackConsumer;
-    /**事务提交业务监听器*/
-    private MessageListenerConcurrently txCommmtListener;
-    /**事务回滚业务监听器*/
-    private MessageListenerConcurrently txRollbackListener;
 
     private String nameSrvAddr;
 
@@ -37,18 +35,23 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
 
     public ShieldTxcRocketMQConsumerClient(String topic,
                                            String nameSrvAddr,
-                                           MessageListenerConcurrently txCommmtListener,
-                                           MessageListenerConcurrently txRollbackListener) {
+                                           ShieldTxcCommitListener txCommtListener,
+                                           ShieldTxcRollbackListener txRollbackListener) {
         this.nameSrvAddr = nameSrvAddr;
         this.topic = topic;
-        this.txCommmtListener = txCommmtListener;
-        this.txRollbackListener = txRollbackListener;
-        // 初始化事务提交消费者
-        initCommitConsumer(this.topic, this.nameSrvAddr);
-        LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient.CommmitConsumer] instance init success.");
-        // 初始化事务回滚消费者
-        initRollbackConsumer(this.topic, this.nameSrvAddr);
-        LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient.RollbackListener] instance init success.");
+        if (txCommtListener == null && txRollbackListener == null) {
+            throw new BizException("Please define at least one MessageListenerConcurrently instance, such as [ShieldTxcCommitListener] or [ShieldTxcRollbackListener] or both.");
+        }
+        if (txCommtListener != null) {
+            // 初始化事务提交消费者
+            initCommitConsumer(this.topic, this.nameSrvAddr, txCommtListener);
+            LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient.CommmitConsumer] instance init success.");
+        }
+        if (txRollbackListener != null) {
+            // 初始化事务回滚消费者
+            initRollbackConsumer(this.topic, this.nameSrvAddr, txRollbackListener);
+            LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient.RollbackListener] instance init success.");
+        }
     }
 
     /**
@@ -56,23 +59,23 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
      * @param topic
      * @param nameSrvAddr
      */
-    private void initCommitConsumer(String topic, String nameSrvAddr) {
-        commmitConsumer =
+    private void initCommitConsumer(String topic, String nameSrvAddr, ShieldTxcCommitListener txCommtListener) {
+        commitConsumer =
                 new DefaultMQPushConsumer(
                         MessagePropertyBuilder.groupId(CommonProperty.TRANSACTION_COMMMIT_STAGE, topic));
-        commmitConsumer.setNamesrvAddr(nameSrvAddr);
+        commitConsumer.setNamesrvAddr(nameSrvAddr);
         // 从头开始消费
-        commmitConsumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+        commitConsumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         // 消费模式:集群模式
-        commmitConsumer.setMessageModel(MessageModel.CLUSTERING);
+        commitConsumer.setMessageModel(MessageModel.CLUSTERING);
         // 注册监听器
-        commmitConsumer.registerMessageListener(this.txCommmtListener);
+        commitConsumer.registerMessageListener(txCommtListener);
         // 订阅所有消息
         try {
-            commmitConsumer.subscribe(
+            commitConsumer.subscribe(
                     MessagePropertyBuilder.topic(CommonProperty.TRANSACTION_COMMMIT_STAGE, topic), "*");
             // 启动消费者
-            commmitConsumer.start();
+            commitConsumer.start();
         } catch (MQClientException e) {
             throw new RuntimeException("Loading [com.shield.txc.RocketMQEventConsumerClient.commmitConsumer] occurred exception", e);
         }
@@ -83,7 +86,7 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
      * @param topic
      * @param nameSrvAddr
      */
-    private void initRollbackConsumer(String topic, String nameSrvAddr) {
+    private void initRollbackConsumer(String topic, String nameSrvAddr, ShieldTxcRollbackListener txRollbackListener) {
         rollbackConsumer =
                 new DefaultMQPushConsumer(
                         MessagePropertyBuilder.groupId(CommonProperty.TRANSACTION_ROLLBACK_STAGE, topic));
@@ -93,7 +96,7 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
         // 消费模式:集群模式
         rollbackConsumer.setMessageModel(MessageModel.CLUSTERING);
         // 注册监听器
-        rollbackConsumer.registerMessageListener(this.txRollbackListener);
+        rollbackConsumer.registerMessageListener(txRollbackListener);
         // 订阅所有消息
         try {
             rollbackConsumer.subscribe(
@@ -118,7 +121,7 @@ public class ShieldTxcRocketMQConsumerClient implements EventSubscribe {
 
     @Override
     public void shutdown() {
-        this.commmitConsumer.shutdown();
+        this.commitConsumer.shutdown();
         this.rollbackConsumer.shutdown();
     }
 

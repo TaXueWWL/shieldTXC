@@ -6,10 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @EnableShieldEventTxc
 @SpringBootApplication
-public class TxcDemoApplication {
+public class TxcUpApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(TxcDemoApplication.class, args);
+        SpringApplication.run(TxcUpApplication.class, args);
     }
 
 }

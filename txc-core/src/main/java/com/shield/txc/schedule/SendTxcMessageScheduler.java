@@ -98,7 +98,7 @@ public class SendTxcMessageScheduler extends AbstractMessageScheduler implements
     }
 
     /**
-     * 发送事务回滚消息
+     * 发送事务消息
      * @param shieldEvent
      */
     @Override
@@ -112,7 +112,8 @@ public class SendTxcMessageScheduler extends AbstractMessageScheduler implements
                 .setContent(shieldEvent.getContent())
                 .setEventType(shieldEvent.getEventType())
                 .setEventStatus(shieldEvent.getEventStatus())
-                .setTxType(shieldEvent.getTxType());
+                .setTxType(shieldEvent.getTxType())
+                .setBizKey(shieldEvent.getBizKey());
 
         String messgeBody = shieldTxcMessage.encode();
         String topic = null;
@@ -132,8 +133,7 @@ public class SendTxcMessageScheduler extends AbstractMessageScheduler implements
             bizResult = shieldTxcRocketMQProducerClient.sendRollbackMsg(rollbackMessage, eventId);
         }
         // TODO
-        System.out.println(messgeBody);
-        System.out.println(JSON.toJSONString(bizResult));
+        System.out.println("发送事务消息:发送结果，[0]表示成功" + JSON.toJSONString(bizResult) + "\r\n" + "发送事务消息:消息体" + messgeBody);
         // 判断发送结果,成功则更新为已发送
         if (bizResult.getBizCode() != BizCode.SEND_MESSAGE_SUCC) {
             return;

@@ -1,5 +1,7 @@
 package com.shield.txc.domain;
 
+import com.shield.txc.ShieldTxcMessage;
+
 import java.util.Date;
 
 /**
@@ -41,11 +43,24 @@ public class ShieldEvent {
      */
     private int recordStatus;
     /**
+     * 业务键
+     */
+    private String bizKey;
+    /**
      * 更新前状态
      */
     private String beforeUpdateEventStatus;
     private Date gmtCreate;
     private Date gmtUpdate;
+
+    public String getBizKey() {
+        return bizKey;
+    }
+
+    public ShieldEvent setBizKey(String bizKey) {
+        this.bizKey = bizKey;
+        return this;
+    }
 
     public String getTxType() {
         return txType;
@@ -157,9 +172,24 @@ public class ShieldEvent {
                 ", content='" + content + '\'' +
                 ", appId='" + appId + '\'' +
                 ", recordStatus=" + recordStatus +
+                ", bizKey='" + bizKey + '\'' +
                 ", beforeUpdateEventStatus='" + beforeUpdateEventStatus + '\'' +
                 ", gmtCreate=" + gmtCreate +
                 ", gmtUpdate=" + gmtUpdate +
                 '}';
+    }
+
+    /**
+     * 转换消息协议为事件
+     * @param shieldTxcMessage
+     */
+    public void convert(ShieldTxcMessage shieldTxcMessage) {
+        this.setId(Integer.valueOf(shieldTxcMessage.getId()));
+        this.setEventType(shieldTxcMessage.getEventType());
+        this.setTxType(shieldTxcMessage.getTxType());
+        this.setEventStatus(shieldTxcMessage.getEventStatus());
+        this.setContent(shieldTxcMessage.getContent());
+        this.setAppId(shieldTxcMessage.getAppId());
+        this.setBizKey(shieldTxcMessage.getBizKey());
     }
 }

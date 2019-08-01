@@ -33,6 +33,16 @@ public class BaseEventService {
     }
 
     /**
+     * 带id插入事件
+     * @param event
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean insertEventWithId(ShieldEvent event) {
+        return baseEventRepository.insertEventWithId(event);
+    }
+
+    /**
      * 更新事件状态
      *
      * @param event
@@ -74,4 +84,14 @@ public class BaseEventService {
         return baseEventRepository.queryEventById(id);
     }
 
+    /**
+     * 查询事件详情
+     * @param bizKey
+     * @param txType
+     * @param appId
+     * @return
+     */
+    public List<ShieldEvent> queryEventByBizkeyCond(String bizKey, String txType, String appId) {
+        return baseEventRepository.queryEventByBizkeyCond(bizKey, txType, appId);
+    }
 }

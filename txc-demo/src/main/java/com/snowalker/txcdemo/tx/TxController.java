@@ -23,7 +23,7 @@ public class TxController implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println(rocketMQEventProducerClient.getClass() + "-" + rocketMQEventProducerClient.getNameSrvAddr());
+        System.out.println(rocketMQEventProducerClient.getNameSrvAddr());
 //        txService.testTran();
     }
 }

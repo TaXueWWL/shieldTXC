@@ -7,6 +7,7 @@ import com.shield.txc.ShieldTxcRocketMQProducerClient;
 import com.shield.txc.exception.BizException;
 import com.shield.txc.schedule.SendTxcMessageScheduler;
 import com.shield.txc.schedule.SendTxcProcessingMessageScheduler;
+import com.shield.txc.util.SpringApplicationHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,6 +132,14 @@ public class ShieldEventTxcConfiguration {
         // 执行调度
         sendTxcProcessingMessageScheduler.schedule();
         return sendTxcProcessingMessageScheduler;
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SpringApplicationHolder springApplicationHolder() {
+        SpringApplicationHolder holder = new SpringApplicationHolder();
+        return holder;
     }
 
 }

@@ -42,6 +42,10 @@ public class ShieldTxcMessage extends AbstractShieldTxcMessage {
      * 应用id
      */
     private String appId;
+    /**
+     * 业务键
+     */
+    private String bizKey;
 
     @Override
     public String encode() {
@@ -53,6 +57,7 @@ public class ShieldTxcMessage extends AbstractShieldTxcMessage {
                 .put("eventStatus", this.getEventStatus())
                 .put("content", this.getContent())
                 .put("appId", this.getAppId())
+                .put("bizKey", this.getBizKey())
                 .build();
 
         String ret_string = null;
@@ -77,6 +82,7 @@ public class ShieldTxcMessage extends AbstractShieldTxcMessage {
             this.setEventStatus(root.get("eventStatus").asText());
             this.setContent(root.get("content").asText());
             this.setAppId(root.get("appId").asText());
+            this.setBizKey(root.get("bizKey").asText());
         } catch (IOException e) {
             throw new RuntimeException("NineYiPriceQueryTaskProtocol反序列化消息异常", e);
         }
@@ -133,6 +139,15 @@ public class ShieldTxcMessage extends AbstractShieldTxcMessage {
 
     public ShieldTxcMessage setAppId(String appId) {
         this.appId = appId;
+        return this;
+    }
+
+    public String getBizKey() {
+        return bizKey;
+    }
+
+    public ShieldTxcMessage setBizKey(String bizKey) {
+        this.bizKey = bizKey;
         return this;
     }
 }

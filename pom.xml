@@ -10,6 +10,7 @@
   <modules>
     <module>txc-core</module>
     <module>txc-demo</module>
+    <module>txc-demo-2</module>
   </modules>
 
   <name>shieldEventTxc</name>

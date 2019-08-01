@@ -4,27 +4,24 @@ import com.google.common.base.Preconditions;
 import com.shield.txc.constant.CommonProperty;
 import com.shield.txc.listener.ShieldTxcCommitListener;
 import com.shield.txc.listener.ShieldTxcRollbackListener;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.common.message.MessageExt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * @author snowalker
  * @version 1.0
  * @date 2019/7/31 19:24
  * @className ShieldTxcConsumerListenerAdapter
- * @desc TODO 事务消费适配器
+ * @desc 事务消费适配器
  */
 public class ShieldTxcConsumerListenerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShieldTxcConsumerListenerAdapter.class);
 
+    /**shieldTXC事务提交消息监听器,事务下游必须实现*/
     private ShieldTxcCommitListener txCommmtListener;
 
+    /**shieldTXC事务回滚消息监听器,事务上游必须实现*/
     private ShieldTxcRollbackListener txRollbackListener;
 
     private String nameSrvAddr;
@@ -35,6 +32,38 @@ public class ShieldTxcConsumerListenerAdapter {
 
 
     public ShieldTxcConsumerListenerAdapter() {}
+
+
+    /**
+     * 事务下游可选
+     * @param nameSrvAddr
+     * @param topic
+     * @param txCommmtListener
+     */
+    public ShieldTxcConsumerListenerAdapter(String nameSrvAddr,
+                                            String topic,
+                                            ShieldTxcCommitListener txCommmtListener) {
+        this.nameSrvAddr = nameSrvAddr;
+        this.topic = topic;
+        this.txCommmtListener = txCommmtListener;
+        init();
+    }
+
+
+    /**
+     * 事务上游可选
+     * @param nameSrvAddr
+     * @param topic
+     * @param txRollbackListener
+     */
+    public ShieldTxcConsumerListenerAdapter(String nameSrvAddr,
+                                            String topic,
+                                            ShieldTxcRollbackListener txRollbackListener) {
+        this.nameSrvAddr = nameSrvAddr;
+        this.topic = topic;
+        this.txRollbackListener = txRollbackListener;
+        init();
+    }
 
     public ShieldTxcConsumerListenerAdapter(String nameSrvAddr,
                                             String topic,
@@ -50,38 +79,10 @@ public class ShieldTxcConsumerListenerAdapter {
     public ShieldTxcConsumerListenerAdapter init() {
         // 初始化shieldTxcRocketMQConsumerClient
         Preconditions.checkNotNull(this.nameSrvAddr, "please insert RocketMQ NameServer address");
-        Preconditions.checkNotNull(this.txCommmtListener, "please initialize a ShieldTxcCommitListener instance");
-        Preconditions.checkNotNull(this.txRollbackListener, "please initialize a ShieldTxcRollbackListener instance");
         shieldTxcRocketMQConsumerClient =
-                new ShieldTxcRocketMQConsumerClient(this.topic, this.nameSrvAddr, this.txCommmtListener, this.txRollbackListener);
+                new ShieldTxcRocketMQConsumerClient(this.topic, this.nameSrvAddr, this.getTxCommmtListener(), this.getTxRollbackListener());
         LOGGER.debug("Initializing [ShieldTxcRocketMQConsumerClient] instance init success.");
         return this;
-    }
-
-    /**
-     * 消费事务提交消息
-     * @param msgs
-     * @param context
-     * @return
-     */
-    public ConsumeConcurrentlyStatus txCommit(final List<MessageExt> msgs,
-                                              final ConsumeConcurrentlyContext context) {
-        ConsumeConcurrentlyStatus consumeConcurrentlyStatus;
-        consumeConcurrentlyStatus = txCommmtListener.consumeMessage(msgs, context);
-        return consumeConcurrentlyStatus;
-    }
-
-    /**
-     * 消费事务回滚消息
-     * @param msgs
-     * @param context
-     * @return
-     */
-    public ConsumeConcurrentlyStatus txRollback(final List<MessageExt> msgs,
-                                                final ConsumeConcurrentlyContext context) {
-        ConsumeConcurrentlyStatus consumeConcurrentlyStatus;
-        consumeConcurrentlyStatus = txRollbackListener.consumeMessage(msgs, context);
-        return consumeConcurrentlyStatus;
     }
 
     public String getNameSrvAddr() {

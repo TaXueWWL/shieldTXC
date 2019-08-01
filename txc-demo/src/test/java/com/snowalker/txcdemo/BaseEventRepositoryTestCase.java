@@ -2,10 +2,12 @@ package com.snowalker.txcdemo;
 
 import com.shield.txc.BaseEventRepository;
 import com.shield.txc.ShieldTxcRocketMQProducerClient;
+import com.shield.txc.constant.CommonProperty;
 import com.shield.txc.constant.EventStatus;
 import com.shield.txc.constant.EventType;
 import com.shield.txc.constant.TXType;
 import com.shield.txc.domain.ShieldEvent;
+import com.shield.txc.util.MessagePropertyBuilder;
 import com.snowalker.txcdemo.tx.TestTxMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +27,11 @@ public class BaseEventRepositoryTestCase {
 
     @Test
     public void contextLoads() {
+        System.out.println(MessagePropertyBuilder.topic(CommonProperty.TRANSACTION_COMMMIT_STAGE, CommonProperty.DEFAULT_SHIELD_TXC_TOPIC));
+        System.out.println(MessagePropertyBuilder.groupId(CommonProperty.TRANSACTION_COMMMIT_STAGE, CommonProperty.DEFAULT_SHIELD_TXC_TOPIC));
+
+        System.out.println(MessagePropertyBuilder.topic(CommonProperty.TRANSACTION_ROLLBACK_STAGE, CommonProperty.DEFAULT_SHIELD_TXC_TOPIC));
+        System.out.println(MessagePropertyBuilder.groupId(CommonProperty.TRANSACTION_ROLLBACK_STAGE, CommonProperty.DEFAULT_SHIELD_TXC_TOPIC));
     }
 
     /**
