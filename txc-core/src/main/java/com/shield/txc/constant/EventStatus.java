@@ -21,11 +21,5 @@ public enum EventStatus {
     /**发布后处理中*/
     CONSUME_PROCESSING,
     /**发布后处理完成*/
-    CONSUME_PROCESSED,
-    /**发布后需要回滚*/
-    NEED_ROLLBACK,
-    /**回滚处理中*/
-    ROLLBACK_PROCESSING,
-    /**已回滚*/
-    ROLLBACKED
+    CONSUME_PROCESSED
 }

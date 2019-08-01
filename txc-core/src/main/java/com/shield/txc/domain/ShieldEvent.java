@@ -152,6 +152,7 @@ public class ShieldEvent {
                 "success=" + success +
                 ", id=" + id +
                 ", eventType='" + eventType + '\'' +
+                ", txType='" + txType + '\'' +
                 ", eventStatus='" + eventStatus + '\'' +
                 ", content='" + content + '\'' +
                 ", appId='" + appId + '\'' +

@@ -56,6 +56,53 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
     }
 
     /**
+     * commit消息持久化
+     * @param shieldTxcMessage
+     * @param eventType
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void putCommitMessage(AbstractShieldTxcMessage shieldTxcMessage,
+                           EventType eventType) {
+        putMessage(shieldTxcMessage, eventType, TXType.COMMIT, null);
+    }
+
+    /**
+     * commit消息持久化
+     * @param shieldTxcMessage
+     * @param eventType
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void putRollbackMessage(AbstractShieldTxcMessage shieldTxcMessage,
+                                 EventType eventType) {
+        putMessage(shieldTxcMessage, eventType, TXType.ROLLBACK, null);
+    }
+
+
+    /**
+     * commit消息持久化
+     * @param shieldTxcMessage
+     * @param eventType
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void putCommitMessage(AbstractShieldTxcMessage shieldTxcMessage,
+                                 EventType eventType,
+                                 String appId) {
+        putMessage(shieldTxcMessage, eventType, TXType.COMMIT, appId);
+    }
+
+    /**
+     * commit消息持久化
+     * @param shieldTxcMessage
+     * @param eventType
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void putRollbackMessage(AbstractShieldTxcMessage shieldTxcMessage,
+                                   EventType eventType,
+                                   String appId) {
+        putMessage(shieldTxcMessage, eventType, TXType.ROLLBACK, appId);
+    }
+
+    /**
      * 消息持久化
      * @param shieldTxcMessage
      * @param eventType

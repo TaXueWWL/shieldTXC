@@ -90,7 +90,7 @@ public class BaseEventRepository {
      */
     public List<ShieldEvent> queryEventListByStatus(String eventStatus) {
         final List<ShieldEvent> resultList = new ArrayList<>();
-        StringBuilder sqlBuilder = new StringBuilder("SELECT id, event_type, event_status, content,")
+        StringBuilder sqlBuilder = new StringBuilder("SELECT id, event_type, event_status, tx_type, content,")
                 .append("app_id, record_status, gmt_create, gmt_update")
                 .append(" from shield_event where event_status=? and record_status=0");
         jdbcTemplate.query(sqlBuilder.toString(), new Object[]{eventStatus}, resultSet -> {
@@ -98,6 +98,7 @@ public class BaseEventRepository {
             shieldEvent.setId(resultSet.getInt("id"))
                     .setEventType(resultSet.getString("event_type"))
                     .setEventStatus(resultSet.getString("event_status"))
+                    .setTxType(resultSet.getString("tx_type"))
                     .setContent(resultSet.getString("content"))
                     .setAppId(resultSet.getString("app_id"))
                     .setRecordStatus(resultSet.getInt("record_status"))
@@ -115,7 +116,7 @@ public class BaseEventRepository {
      * @return
      */
     public ShieldEvent queryEventById(int id) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT id, event_type, event_status, content,")
+        StringBuilder sqlBuilder = new StringBuilder("SELECT id, event_type, event_status, tx_type, content,")
                 .append("app_id, record_status, gmt_create, gmt_update")
                 .append(" from shield_event where id=?");
         final ShieldEvent shieldEvent = new ShieldEvent();
@@ -123,6 +124,7 @@ public class BaseEventRepository {
             shieldEvent.setId(resultSet.getInt("id"))
                     .setEventType(resultSet.getString("event_type"))
                     .setEventStatus(resultSet.getString("event_status"))
+                    .setTxType(resultSet.getString("tx_type"))
                     .setContent(resultSet.getString("content"))
                     .setAppId(resultSet.getString("app_id"))
                     .setRecordStatus(resultSet.getInt("record_status"))

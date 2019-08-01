@@ -6,6 +6,8 @@ import com.shield.txc.constant.MessageQueueType;
 import com.shield.txc.util.MessagePropertyBuilder;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author snowalker
@@ -15,6 +17,8 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
  * @desc
  */
 class TxcRocketMQProducerImpl implements EventPublish {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TxcRocketMQProducerImpl.class);
 
     // 事务提交生产者
     private DefaultMQProducer commitProducer;
@@ -55,6 +59,7 @@ class TxcRocketMQProducerImpl implements EventPublish {
      * @return
      */
     TxcRocketMQProducerImpl initCommit(String topic, String nameSrvAddr, int retryTimesWhenSendFailed) {
+        LOGGER.debug("Initializing [TxcRocketMQProducerImpl.commitProducer] instance init success.");
         return this.init(this.commitProducer, topic, nameSrvAddr, CommonProperty.TRANSACTION_COMMMIT_STAGE, retryTimesWhenSendFailed);
     }
 
@@ -67,6 +72,7 @@ class TxcRocketMQProducerImpl implements EventPublish {
      * @return
      */
     public TxcRocketMQProducerImpl initRollback(String topic, String nameSrvAddr) {
+        LOGGER.debug("Initializing [TxcRocketMQProducerImpl.initRollback] instance init success.");
         if (this.getRetryTimesWhenSendFailed() > 0) {
             return this.initCommit(topic, nameSrvAddr, this.getRetryTimesWhenSendFailed());
         }

@@ -10,5 +10,13 @@ package com.shield.txc.constant;
 public enum TXType {
 
     COMMIT,
-    ROLLBACK
+    ROLLBACK;
+
+    public static String getCommit() {
+        return COMMIT.toString();
+    }
+
+    public static String getRollback() {
+        return ROLLBACK.toString();
+    }
 }
