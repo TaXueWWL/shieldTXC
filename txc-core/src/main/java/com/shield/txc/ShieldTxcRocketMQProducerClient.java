@@ -1,5 +1,6 @@
 package com.shield.txc;
 
+import com.google.common.base.Preconditions;
 import com.shield.txc.constant.*;
 import com.shield.txc.domain.AbstractShieldTxcMessage;
 import com.shield.txc.domain.BizResult;
@@ -62,8 +63,9 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
      */
     @Transactional(rollbackFor = Exception.class)
     public void putCommitMessage(AbstractShieldTxcMessage shieldTxcMessage,
-                           EventType eventType) {
-        putMessage(shieldTxcMessage, eventType, TXType.COMMIT, null);
+                                 EventType eventType,
+                                 String bizKey) {
+        putMessage(shieldTxcMessage, eventType, TXType.COMMIT, null, bizKey);
     }
 
     /**
@@ -73,8 +75,8 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
      */
     @Transactional(rollbackFor = Exception.class)
     public void putRollbackMessage(AbstractShieldTxcMessage shieldTxcMessage,
-                                 EventType eventType) {
-        putMessage(shieldTxcMessage, eventType, TXType.ROLLBACK, null);
+                                 EventType eventType, String bizKey) {
+        putMessage(shieldTxcMessage, eventType, TXType.ROLLBACK, null, bizKey);
     }
 
 
@@ -86,8 +88,9 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
     @Transactional(rollbackFor = Exception.class)
     public void putCommitMessage(AbstractShieldTxcMessage shieldTxcMessage,
                                  EventType eventType,
-                                 String appId) {
-        putMessage(shieldTxcMessage, eventType, TXType.COMMIT, appId);
+                                 String appId,
+                                 String bizKey) {
+        putMessage(shieldTxcMessage, eventType, TXType.COMMIT, appId, bizKey);
     }
 
     /**
@@ -98,8 +101,9 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
     @Transactional(rollbackFor = Exception.class)
     public void putRollbackMessage(AbstractShieldTxcMessage shieldTxcMessage,
                                    EventType eventType,
-                                   String appId) {
-        putMessage(shieldTxcMessage, eventType, TXType.ROLLBACK, appId);
+                                   String appId,
+                                   String bizKey) {
+        putMessage(shieldTxcMessage, eventType, TXType.ROLLBACK, appId, bizKey);
     }
 
     /**
@@ -111,8 +115,9 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
     @Transactional(rollbackFor = Exception.class)
     public void putMessage(AbstractShieldTxcMessage shieldTxcMessage,
                            EventType eventType,
-                           TXType txType) {
-        putMessage(shieldTxcMessage, eventType, txType, null);
+                           TXType txType,
+                           String bizKey) {
+        putMessage(shieldTxcMessage, eventType, txType, null, bizKey);
     }
 
     /**
@@ -124,14 +129,19 @@ public class ShieldTxcRocketMQProducerClient implements EventPublish {
      */
     @Transactional(rollbackFor = Exception.class)
     public void putMessage(AbstractShieldTxcMessage shieldTxcMessage,
-                       EventType eventType,
-                       TXType txType,
-                       String appId) {
+                           EventType eventType,
+                           TXType txType,
+                           String appId,
+                           String bizKey) {
+        Preconditions.checkNotNull(eventType, "Please insert eventType, type is:[com.shield.txc.constant.EventType]");
+        Preconditions.checkNotNull(bizKey, "Please insert unique bizKey!");
+
         ShieldEvent event = new ShieldEvent();
         event.setEventType(eventType.toString())
                 .setTxType(txType.toString())
                 .setEventStatus(EventStatus.PRODUCE_INIT.toString())
                 .setContent(shieldTxcMessage.encode())
+                .setBizKey(bizKey)
                 .setAppId(appId);
         try {
             // 入库失败回滚

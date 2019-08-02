@@ -96,28 +96,31 @@ public class SendTxcProcessingMessageScheduler extends AbstractMessageScheduler 
                 .setContent(shieldEvent.getContent())
                 .setEventType(shieldEvent.getEventType())
                 .setEventStatus(shieldEvent.getEventStatus())
-                .setTxType(shieldEvent.getTxType());
-
+                .setTxType(shieldEvent.getTxType())
+                .setBizKey(shieldEvent.getBizKey());
+        String messgeBody = shieldTxcMessage.encode();
         String topic = null;
         BizResult bizResult = null;
         // 发送commit消息
         if (TXType.COMMIT.toString().equals(shieldTxcMessage.getTxType())) {
             topic = MessagePropertyBuilder.topic(CommonProperty.TRANSACTION_COMMMIT_STAGE,
                     shieldTxcRocketMQProducerClient.getTopic());
-            Message commitMessage = new Message(topic, shieldTxcMessage.encode().getBytes());
+            Message commitMessage = new Message(topic, messgeBody.getBytes());
             bizResult = shieldTxcRocketMQProducerClient.sendCommitMsg(commitMessage, shieldEvent.getId());
         }
         // 发送rollback消息
         if (TXType.ROLLBACK.toString().equals(shieldTxcMessage.getTxType())) {
             topic = MessagePropertyBuilder.topic(CommonProperty.TRANSACTION_ROLLBACK_STAGE,
                     shieldTxcRocketMQProducerClient.getTopic());
-            Message rollbackMessage = new Message(topic, shieldTxcMessage.encode().getBytes());
+            Message rollbackMessage = new Message(topic, messgeBody.getBytes());
             bizResult = shieldTxcRocketMQProducerClient.sendRollbackMsg(rollbackMessage, shieldEvent.getId());
         }
         // 判断发送结果,成功则更新为已发送
         if (bizResult.getBizCode() != BizCode.SEND_MESSAGE_SUCC) {
+            LOGGER.debug("[SendTxcProcessingMessageScheduler] Send ShieldTxc Message result:[FAIL], Message Body:[{}]", messgeBody);
             return;
         }
+        LOGGER.debug("[SendTxcProcessingMessageScheduler] Send ShieldTxc Message result:[SUCCESS], Message Body:[{}]", messgeBody);
     }
 
     @Override

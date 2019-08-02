@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.snowalker</groupId>
-    <artifactId>txc-demo</artifactId>
+    <artifactId>txc-demo-down</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>txc-demo</name>
+    <name>txc-demo-down</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.snowalker.txc</groupId>
             <artifactId>txc-core</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 

@@ -1,6 +1,5 @@
 package com.shield.txc.schedule;
 
-import com.alibaba.fastjson.JSON;
 import com.shield.txc.BaseEventService;
 import com.shield.txc.ShieldTxcMessage;
 import com.shield.txc.ShieldTxcRocketMQProducerClient;
@@ -69,8 +68,11 @@ public class SendTxcMessageScheduler extends AbstractMessageScheduler implements
                 return;
             }
             for (ShieldEvent shieldEvent : shieldEvents) {
+                // 发送前改状态
                 processBeforeSendMessage(shieldEvent);
+                // 发送消息核心逻辑
                 sendMessage(shieldEvent);
+                // 判断发送结果,成功则更新为已发送
                 processAfterSendMessage(shieldEvent);
             }
         } catch (Exception e) {
@@ -132,12 +134,11 @@ public class SendTxcMessageScheduler extends AbstractMessageScheduler implements
             Message rollbackMessage = new Message(topic, messgeBody.getBytes());
             bizResult = shieldTxcRocketMQProducerClient.sendRollbackMsg(rollbackMessage, eventId);
         }
-        // TODO
-        System.out.println("发送事务消息:发送结果，[0]表示成功" + JSON.toJSONString(bizResult) + "\r\n" + "发送事务消息:消息体" + messgeBody);
-        // 判断发送结果,成功则更新为已发送
         if (bizResult.getBizCode() != BizCode.SEND_MESSAGE_SUCC) {
+            LOGGER.debug("[SendTxcMessageScheduler] Send ShieldTxc Message result:[FAIL], Message Body:[{}]", messgeBody);
             return;
         }
+        LOGGER.debug("[SendTxcMessageScheduler] Send ShieldTxc Message result:[SUCCESS], Message Body:[{}]", messgeBody);
     }
 
     /**

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 /**
  * @author snowalker
  * @version 1.0
@@ -23,9 +25,12 @@ public class TxService {
     @Transactional(rollbackFor = Exception.class)
     public void testTran() {
         TestTxMessage testTxMessage = new TestTxMessage();
-        testTxMessage.setName("SNOWALKER");
+        testTxMessage.setName(UUID.randomUUID().toString().replace("-", "").substring(0, 10));
         shieldTxcRocketMQProducerClient
-                .putMessage(testTxMessage, EventType.INSERT, TXType.COMMIT, "txc-demo");
-        throw new RuntimeException("测试事务回滚");
+                .putMessage(testTxMessage,
+                        EventType.INSERT,
+                        TXType.COMMIT,
+                        "txc-demo",
+                        UUID.randomUUID().toString());
     }
 }

@@ -23,7 +23,8 @@ public class TxController implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println(rocketMQEventProducerClient.getNameSrvAddr());
-//        txService.testTran();
+//        System.out.println(rocketMQEventProducerClient.getNameSrvAddr());
+        System.out.println("事务上游本地事务开始，消息持久化.....");
+        txService.testTran();
     }
 }

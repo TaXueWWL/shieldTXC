@@ -45,7 +45,7 @@ public class ShieldTxcRollbackListener implements MessageListenerConcurrently {
 
             String msgBody = new String(msg.getBody());
             String msgId = msg.getMsgId();
-            System.out.println("Rollback消息----" + msgBody);
+            LOGGER.debug("[ShieldTxcRollbackListener]Consuming [ROLLBACK] Message start... msgId={},msgBody={}", msgId, msgBody);
 
             ShieldTxcMessage shieldTxcMessage = new ShieldTxcMessage();
             shieldTxcMessage.decode(msgBody);

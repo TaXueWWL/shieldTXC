@@ -1,6 +1,5 @@
 package com.shield.txc.listener;
 
-import com.alibaba.fastjson.JSON;
 import com.shield.txc.BaseEventService;
 import com.shield.txc.ShieldTxcMessage;
 import com.shield.txc.constant.CommonProperty;
@@ -44,7 +43,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         for (MessageExt msg : msgs) {
             String msgBody = new String(msg.getBody());
             String msgId = msg.getMsgId();
-            System.out.println("commit消息----" + msgBody);
+            LOGGER.debug("[ShieldTxcCommitListener]Consuming [COMMIT] Message start... msgId={},msgBody={}", msgId, msgBody);
 
             ShieldTxcMessage shieldTxcMessage = new ShieldTxcMessage();
             shieldTxcMessage.decode(msgBody);
@@ -60,7 +59,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
                 int currReconsumeTimes = msg.getReconsumeTimes();
                 if (currReconsumeTimes >= CommonProperty.MAX_COMMIT_RECONSUME_TIMES) {
                     // 事务回滚操作，消息复制为回滚生产者，持久化
-                    LOGGER.debug("[ShieldTxcCommitListener] START transaction rollback sequence! msgId={}", msgId);
+                    LOGGER.debug("[ShieldTxcCommitListener] START transaction rollback sequence! msgId={},currReconsumeTimes={}", msgId, currReconsumeTimes);
                     if (doPutRollbackMsgAfterMaxConsumeTimes(baseEventService, event, msgId)) {
                         LOGGER.debug("[ShieldTxcCommitListener] transaction rollback sequence executed SUCCESS! msgId={}", msgId);
                         return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
@@ -133,8 +132,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         // 更新后状态:达到最大重试次数
         shieldEvent.setEventStatus(EventStatus.CONSUME_MAX_RECONSUMETIMES.toString());
         boolean updateBefore = baseEventService.updateEventStatusById(shieldEvent);
-        LOGGER.debug("[UPDATE TO CONSUME_MAX_RECONSUMETIMES] {},msgId={}", updateBefore, msgId);
-        System.out.println("更新结果:" + updateBefore + "---更新事件：" + JSON.toJSONString(shieldEvent));
+        LOGGER.debug("[ShieldTxcCommitListener::UPDATE TO CONSUME_MAX_RECONSUMETIMES] {},msgId={}, updateResult:[{}]", updateBefore, msgId, updateBefore);
         if (!updateBefore) {
             // 更新失败,幂等重试.此时必定是系统依赖组件出问题了
             return false;
@@ -146,7 +144,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         rollbackEvent.setEventStatus(EventStatus.PRODUCE_INIT.toString())
                 .setTxType(TXType.ROLLBACK.toString());
         boolean insertResult = baseEventService.insertEvent(rollbackEvent);
-        LOGGER.debug("[INSERT ROLLBACK MESSAGE] {},msgId={}", insertResult, msgId);
+        LOGGER.debug("[ShieldTxcCommitListener::INSERT ROLLBACK MESSAGE] {},msgId={}", insertResult, msgId);
         if (!insertResult) {
             return false;
         }
@@ -164,11 +162,12 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
     private ConsumeConcurrentlyStatus doUpdateAfterConsumed(BaseEventService baseEventService,
                                                             ConsumeConcurrentlyStatus consumeConcurrentlyStatus,
                                                             ShieldEvent shieldEvent) {
-        if (ConsumeConcurrentlyStatus.RECONSUME_LATER == consumeConcurrentlyStatus) {
+        LOGGER.debug("[ShieldTxcCommitListener::doUpdateAfterConsumed] The Real ConsumeConcurrentlyStatus is : [{}]", consumeConcurrentlyStatus);
+        if (ConsumeConcurrentlyStatus.RECONSUME_LATER.name().equals(consumeConcurrentlyStatus.name())) {
             // 消费失败，消费状态仍旧处理中
             return consumeConcurrentlyStatus;
         }
-        if (ConsumeConcurrentlyStatus.CONSUME_SUCCESS == consumeConcurrentlyStatus) {
+        if (ConsumeConcurrentlyStatus.CONSUME_SUCCESS.name().equals(consumeConcurrentlyStatus.name())) {
             // 消费成功，处理中改完成，更新前状态:消费处理中
             shieldEvent.setBeforeUpdateEventStatus(shieldEvent.getEventStatus());
             // 更新后状态:消费处理中
@@ -179,7 +178,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
                 return ConsumeConcurrentlyStatus.RECONSUME_LATER;
             }
         }
-        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+        return ConsumeConcurrentlyStatus.RECONSUME_LATER;
 
     }
 
@@ -195,7 +194,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         // 更新后状态:消费处理中
         shieldEvent.setEventStatus(EventStatus.CONSUME_PROCESSING.toString());
         boolean updateBefore = baseEventService.updateEventStatusById(shieldEvent);
-        if (!updateBefore) {
+        if (updateBefore == false) {
             // 更新失败
             return;
         }

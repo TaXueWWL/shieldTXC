@@ -11,7 +11,7 @@
 
     <groupId>com.snowalker.txc</groupId>
     <artifactId>txc-core</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>txc-core</name>
 
