@@ -6,7 +6,6 @@ import com.shield.txc.BaseEventService;
 import com.shield.txc.ShieldTxcRocketMQProducerClient;
 import com.shield.txc.exception.BizException;
 import com.shield.txc.schedule.SendTxcMessageScheduler;
-import com.shield.txc.schedule.SendTxcProcessingMessageScheduler;
 import com.shield.txc.util.SpringApplicationHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -110,33 +109,9 @@ public class ShieldEventTxcConfiguration {
         return sendTxcRollbackMessageScheduler;
     }
 
-    /**
-     * 异步回滚消息调度构造
-     * @param rocketMQProperties
-     * @return
-     */
     @Bean
     @ConditionalOnMissingBean
-    @Order(value = 4)
-    public SendTxcProcessingMessageScheduler sendTxcProcessingMessageScheduler(RocketMQProperties rocketMQProperties) {
-        SendTxcProcessingMessageScheduler sendTxcProcessingMessageScheduler = new SendTxcProcessingMessageScheduler();
-        // 设置调度线程池参数
-        sendTxcProcessingMessageScheduler.setInitialDelay(rocketMQProperties.getTranMessageSendInitialDelay());
-        sendTxcProcessingMessageScheduler.setPeriod(rocketMQProperties.getTranMessageSendPeriod());
-        sendTxcProcessingMessageScheduler.setCorePoolSize(rocketMQProperties.getTranMessageSendCorePoolSize());
-        // 数据库操作
-        sendTxcProcessingMessageScheduler.setBaseEventService(baseEventService(baseEventRepository()));
-        // 消息发送
-        sendTxcProcessingMessageScheduler.setShieldTxcRocketMQProducerClient(rocketMQEventProducerClient(rocketMQProperties));
-        LOGGER.debug("Initializing [SendTxcProcessingMessageScheduler] instance init success.");
-        // 执行调度
-        sendTxcProcessingMessageScheduler.schedule();
-        return sendTxcProcessingMessageScheduler;
-    }
-
-
-    @Bean
-    @ConditionalOnMissingBean
+    @Order(value = 0)
     public SpringApplicationHolder springApplicationHolder() {
         SpringApplicationHolder holder = new SpringApplicationHolder();
         return holder;

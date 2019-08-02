@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author snowalker
@@ -36,8 +37,15 @@ public class TxConsumeService implements InitializingBean {
         new ShieldTxcConsumerListenerAdapter(nameSerAddr, topic, new ShieldTxcCommitListener(new MessageListenerConcurrently() {
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
-                System.out.println("测试消费ShieldTxcCommitListener");
-                return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+                System.out.println("测试消费ShieldTxcCommitListener开始......");
+
+                Random ra =new Random();
+                int randomInt = ra.nextInt(10) + 1;
+                if (randomInt <= 5) {
+                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                } else {
+                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+                }
             }
         }));
 

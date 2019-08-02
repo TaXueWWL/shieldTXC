@@ -30,7 +30,7 @@ public class TxService {
                 .putMessage(testTxMessage,
                         EventType.INSERT,
                         TXType.COMMIT,
-                        "txc-demo",
+                        testTxMessage.getName(),
                         UUID.randomUUID().toString());
     }
 }
