@@ -24,8 +24,6 @@ import java.util.List;
  * @date 2019/8/1 15:50
  * @className ShieldTxcCommitListener
  * @desc shieldTXC事务提交消息监听器
- * TODO 重试场景下，针对不同的消费情况，更新方式不同，一般是CONSUME_PROCESSING到CONSUME_MAX_RECONSUMETIMES
- * TODO 也有CONSUME_INIT到CONSUME_MAX_RECONSUMETIMES
  */
 public class ShieldTxcCommitListener implements MessageListenerConcurrently {
 
@@ -46,7 +44,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         for (MessageExt msg : msgs) {
             String msgBody = new String(msg.getBody());
             String msgId = msg.getMsgId();
-            System.out.println("commit消费----" + msgBody);
+            System.out.println("commit消息----" + msgBody);
 
             ShieldTxcMessage shieldTxcMessage = new ShieldTxcMessage();
             shieldTxcMessage.decode(msgBody);
@@ -62,9 +60,9 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
                 int currReconsumeTimes = msg.getReconsumeTimes();
                 if (currReconsumeTimes >= CommonProperty.MAX_COMMIT_RECONSUME_TIMES) {
                     // 事务回滚操作，消息复制为回滚生产者，持久化
-                    LOGGER.debug("[ShieldTxcCommitListener] transaction rollback START! msgId={}", msgId);
-                    if (doPutRollbackMsgAfterMaxConsumeTimes(baseEventService, event)) {
-                        LOGGER.debug("[ShieldTxcCommitListener] transaction rollback SUCCESS! msgId={}", msgId);
+                    LOGGER.debug("[ShieldTxcCommitListener] START transaction rollback sequence! msgId={}", msgId);
+                    if (doPutRollbackMsgAfterMaxConsumeTimes(baseEventService, event, msgId)) {
+                        LOGGER.debug("[ShieldTxcCommitListener] transaction rollback sequence executed SUCCESS! msgId={}", msgId);
                         return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                     } else {
                         // 如果一直失败最后会进死信
@@ -89,7 +87,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
                 // 入库失败回滚
                 boolean insertResult = baseEventService.insertEventWithId(event);
                 if (!insertResult) {
-                    LOGGER.warn("ShieldTxcCommitListener insert shieldEvent Consume Message failed,msgId={}", msgId);
+                    LOGGER.warn("[ShieldTxcCommitListener] insert shieldEvent Consume Message failed,msgId={}", msgId);
                     return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                 }
                 // 改消费处理中
@@ -121,11 +119,12 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
      * @param baseEventService
      * @param shieldEvent
      */
-    private boolean doPutRollbackMsgAfterMaxConsumeTimes(BaseEventService baseEventService, ShieldEvent shieldEvent) {
+    private boolean doPutRollbackMsgAfterMaxConsumeTimes(BaseEventService baseEventService,
+                                                         ShieldEvent shieldEvent,
+                                                         String msgId) {
 
         ShieldEvent queryEvent = baseEventService.queryEventById(shieldEvent.getId());
         if (!queryEvent.getEventStatus().equals(EventStatus.CONSUME_PROCESSING.toString())) {
-            System.out.println("跳过这条数据 不是要更新的CONSUME_PROCESSING数据，id=" + shieldEvent.getId());
             return false;
         }
         shieldEvent.setId(shieldEvent.getId());
@@ -134,6 +133,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         // 更新后状态:达到最大重试次数
         shieldEvent.setEventStatus(EventStatus.CONSUME_MAX_RECONSUMETIMES.toString());
         boolean updateBefore = baseEventService.updateEventStatusById(shieldEvent);
+        LOGGER.debug("[UPDATE TO CONSUME_MAX_RECONSUMETIMES] {},msgId={}", updateBefore, msgId);
         System.out.println("更新结果:" + updateBefore + "---更新事件：" + JSON.toJSONString(shieldEvent));
         if (!updateBefore) {
             // 更新失败,幂等重试.此时必定是系统依赖组件出问题了
@@ -146,7 +146,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         rollbackEvent.setEventStatus(EventStatus.PRODUCE_INIT.toString())
                 .setTxType(TXType.ROLLBACK.toString());
         boolean insertResult = baseEventService.insertEvent(rollbackEvent);
-        System.out.println("插入结果:" + insertResult);
+        LOGGER.debug("[INSERT ROLLBACK MESSAGE] {},msgId={}", insertResult, msgId);
         if (!insertResult) {
             return false;
         }
