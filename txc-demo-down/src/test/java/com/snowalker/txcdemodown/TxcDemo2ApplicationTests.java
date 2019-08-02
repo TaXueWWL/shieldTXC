@@ -1,4 +1,4 @@
-package com.snowalker.txcdemo2;
+package com.snowalker.txcdemodown;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

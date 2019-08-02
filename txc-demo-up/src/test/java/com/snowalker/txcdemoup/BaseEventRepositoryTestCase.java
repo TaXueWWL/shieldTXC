@@ -1,4 +1,4 @@
-package com.snowalker.txcdemo;
+package com.snowalker.txcdemoup;
 
 import com.shield.txc.BaseEventRepository;
 import com.shield.txc.ShieldTxcRocketMQProducerClient;
@@ -8,7 +8,7 @@ import com.shield.txc.constant.EventType;
 import com.shield.txc.constant.TXType;
 import com.shield.txc.domain.ShieldEvent;
 import com.shield.txc.util.MessagePropertyBuilder;
-import com.snowalker.txcdemo.tx.TestTxMessage;
+import com.snowalker.txcdemoup.tx.TestTxMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

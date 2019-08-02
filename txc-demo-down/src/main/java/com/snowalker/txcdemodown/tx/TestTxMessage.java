@@ -1,4 +1,4 @@
-package com.snowalker.txcdemo2.tx;
+package com.snowalker.txcdemodown.tx;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

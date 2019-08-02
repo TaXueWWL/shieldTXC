@@ -1,4 +1,4 @@
-package com.snowalker.txcdemo.tx;
+package com.snowalker.txcdemoup.tx;
 
 import com.shield.txc.ShieldTxcRocketMQProducerClient;
 import com.shield.txc.constant.EventType;

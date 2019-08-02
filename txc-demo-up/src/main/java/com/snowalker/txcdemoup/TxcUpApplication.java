@@ -1,4 +1,4 @@
-package com.snowalker.txcdemo;
+package com.snowalker.txcdemoup;
 
 import com.shield.txc.configuration.EnableShieldEventTxc;
 import org.springframework.boot.SpringApplication;

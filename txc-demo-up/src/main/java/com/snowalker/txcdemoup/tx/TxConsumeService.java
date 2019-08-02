@@ -1,7 +1,7 @@
-package com.snowalker.txcdemo2.tx;
+package com.snowalker.txcdemoup.tx;
 
 import com.shield.txc.ShieldTxcConsumerListenerAdapter;
-import com.shield.txc.listener.ShieldTxcCommitListener;
+import com.shield.txc.listener.ShieldTxcRollbackListener;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 /**
  * @author snowalker
@@ -19,7 +18,7 @@ import java.util.Random;
  * @date 2019/8/1 15:26
  * @className TxConsumeService
  * @desc TODO tag支持
- * 事务下游只需要订阅事务消费监听，ShieldTxcCommitListener
+ * 事件上游只需要订阅回滚，初始化ShieldTxcRollbackListener
  */
 @Service
 public class TxConsumeService implements InitializingBean {
@@ -34,18 +33,11 @@ public class TxConsumeService implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
 
-        new ShieldTxcConsumerListenerAdapter(nameSerAddr, topic, new ShieldTxcCommitListener(new MessageListenerConcurrently() {
+        new ShieldTxcConsumerListenerAdapter(nameSerAddr, topic, new ShieldTxcRollbackListener(new MessageListenerConcurrently() {
             @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
-                System.out.println("测试消费ShieldTxcCommitListener开始......");
-
-                Random ra =new Random();
-                int randomInt = ra.nextInt(10) + 1;
-                if (randomInt <= 5) {
-                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-                } else {
-                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
-                }
+                System.out.println("测试消费【回滚】ShieldTxcRollbackListener");
+                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
         }));
 
