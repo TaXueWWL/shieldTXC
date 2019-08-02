@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.snowalker.txc</groupId>
-  <artifactId>shieldEventTxc</artifactId>
+  <artifactId>shieldTxc</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
 
@@ -15,7 +15,7 @@
     <module>txc-demo-down</module>
   </modules>
 
-  <name>shieldEventTxc</name>
+  <name>shieldTxc</name>
 
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
