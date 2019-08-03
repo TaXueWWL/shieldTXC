@@ -43,7 +43,7 @@ public class ShieldEventTxcConfiguration {
     @Order(value = 0)
     public BaseEventRepository baseEventRepository() {
         BaseEventRepository baseEventRepository = new BaseEventRepository(jdbcTemplate);
-        LOGGER.debug("Initializing [BaseEventRepository] instance init success.");
+        LOGGER.debug("Initializing [BaseEventRepository] instance success.");
         return baseEventRepository;
     }
 
@@ -57,7 +57,7 @@ public class ShieldEventTxcConfiguration {
     @Order(value = 1)
     public BaseEventService baseEventService(BaseEventRepository baseEventRepository) {
         BaseEventService baseEventService = new BaseEventService(baseEventRepository);
-        LOGGER.debug("Initializing [BaseEventService] instance init success.");
+        LOGGER.debug("Initializing [BaseEventService] instance success.");
         return baseEventService;
     }
 
@@ -81,32 +81,32 @@ public class ShieldEventTxcConfiguration {
         ShieldTxcRocketMQProducerClient rocketMQEventProducerClient =
                 new ShieldTxcRocketMQProducerClient(topicSource, nameSrvAddr, retryTimesWhenSendFailed);
         rocketMQEventProducerClient.setBaseEventService(baseEventService(baseEventRepository()));
-        LOGGER.debug("Initializing [ShieldTxcRocketMQProducerClient] instance init success.");
+        LOGGER.debug("Initializing [ShieldTxcRocketMQProducerClient] instance success.");
         return rocketMQEventProducerClient;
     }
 
     /**
-     * 异步回滚消息调度构造
+     * 异步消息调度构造
      * @param rocketMQProperties
      * @return
      */
     @Bean
     @ConditionalOnMissingBean
     @Order(value = 3)
-    public SendTxcMessageScheduler sendTxcRollbackMessageScheduler(RocketMQProperties rocketMQProperties) {
-        SendTxcMessageScheduler sendTxcRollbackMessageScheduler = new SendTxcMessageScheduler();
+    public SendTxcMessageScheduler sendTxcMessageScheduler(RocketMQProperties rocketMQProperties) {
+        SendTxcMessageScheduler sendTxcMessageScheduler = new SendTxcMessageScheduler();
         // 设置调度线程池参数
-        sendTxcRollbackMessageScheduler.setInitialDelay(rocketMQProperties.getTranMessageSendInitialDelay());
-        sendTxcRollbackMessageScheduler.setPeriod(rocketMQProperties.getTranMessageSendPeriod());
-        sendTxcRollbackMessageScheduler.setCorePoolSize(rocketMQProperties.getTranMessageSendCorePoolSize());
+        sendTxcMessageScheduler.setInitialDelay(rocketMQProperties.getTranMessageSendInitialDelay());
+        sendTxcMessageScheduler.setPeriod(rocketMQProperties.getTranMessageSendPeriod());
+        sendTxcMessageScheduler.setCorePoolSize(rocketMQProperties.getTranMessageSendCorePoolSize());
         // 数据库操作
-        sendTxcRollbackMessageScheduler.setBaseEventService(baseEventService(baseEventRepository()));
+        sendTxcMessageScheduler.setBaseEventService(baseEventService(baseEventRepository()));
         // 消息发送
-        sendTxcRollbackMessageScheduler.setShieldTxcRocketMQProducerClient(rocketMQEventProducerClient(rocketMQProperties));
-        LOGGER.debug("Initializing [SendTxcRollbackMessageScheduler] instance init success.");
+        sendTxcMessageScheduler.setShieldTxcRocketMQProducerClient(rocketMQEventProducerClient(rocketMQProperties));
+        LOGGER.debug("Initializing [sendTxcMessageScheduler] instance success.");
         // 执行调度
-        sendTxcRollbackMessageScheduler.schedule();
-        return sendTxcRollbackMessageScheduler;
+        sendTxcMessageScheduler.schedule();
+        return sendTxcMessageScheduler;
     }
 
     @Bean
