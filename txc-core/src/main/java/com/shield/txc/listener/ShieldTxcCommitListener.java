@@ -170,7 +170,7 @@ public class ShieldTxcCommitListener implements MessageListenerConcurrently {
         if (ConsumeConcurrentlyStatus.CONSUME_SUCCESS.name().equals(consumeConcurrentlyStatus.name())) {
             // 消费成功，处理中改完成，更新前状态:消费处理中
             shieldEvent.setBeforeUpdateEventStatus(shieldEvent.getEventStatus());
-            // 更新后状态:消费处理中
+            // 更新后状态:消费完成
             shieldEvent.setEventStatus(EventStatus.CONSUME_PROCESSED.toString());
             boolean updateBefore = baseEventService.updateEventStatusById(shieldEvent);
             if (!updateBefore) {
