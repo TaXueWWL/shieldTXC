@@ -39,7 +39,6 @@ public class ShieldTxcRollbackListener implements MessageListenerConcurrently {
 
     @Override
     public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
-        // 测试打印消息体
 
         for (MessageExt msg : msgs) {
 
